@@ -13,7 +13,7 @@ BLACK = (0, 0, 0, 255)
 WHITE = (255, 255, 255, 255)
 
 wait = 100  # this variable is global so both `Grid` and `MainWindow` can access it
-            # see pause() below to see the use of the `wait` variable
+# see pause() below to see the use of the `wait` variable
 
 
 def pause():
@@ -43,7 +43,9 @@ class Grid(QTableWidget):
         self.stop = False  # should I stop?
 
         # create the actual board
-        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)  # block editing the table
+        self.setEditTriggers(
+            QAbstractItemView.EditTrigger.NoEditTriggers
+        )  # block editing the table
 
         # no need to show horizontal nor vertical headers
         self.horizontalHeader().hide()
@@ -73,12 +75,14 @@ class Grid(QTableWidget):
                 self.setItem(i, j, QTableWidgetItem())  # create the cell
                 self.item(i, j).setBackground(QtGui.QColor(*WHITE))  # set the colour
         self.ran = False  # it doesn't matter whether we've run the code or not,
-                          # as long as we've cleared the board, self.ran is false.
+        # as long as we've cleared the board, self.ran is false.
 
         self.start = (0, 0)  # start cell
         self.item(0, 0).setBackground(QtGui.QColor(*GREEN))  # set cell (0, 0) to green
         self.end = (self.n - 1, self.m - 1)  # ending cell
-        self.item(self.n - 1, self.m - 1).setBackground(QtGui.QColor(*RED))  # set cell (n-1, m-1) to red
+        self.item(self.n - 1, self.m - 1).setBackground(
+            QtGui.QColor(*RED)
+        )  # set cell (n-1, m-1) to red
 
     def color(self, r, c):
         # return the color of the cell (r, c)
@@ -126,7 +130,7 @@ class Grid(QTableWidget):
 
             # dr, dc are the difference in row and column, respectively.
             # This is used to search all neighbors of cell (r, c).
-            for (dr, dc) in ((0, 1), (1, 0), (0, -1), (-1, 0)):
+            for dr, dc in ((0, 1), (1, 0), (0, -1), (-1, 0)):
                 # the flag self.stop stops this function immediately.
                 if self.stop:
                     self.stop = False
@@ -138,9 +142,14 @@ class Grid(QTableWidget):
                 # we cannot go to a cell out of bounds
                 # or into a visited cell
                 # or into an obstacle
-                if r2 < 0 or r2 >= self.n or c2 < 0 or c2 >= self.m \
-                        or prev[r2][c2] != (-1, -1) \
-                        or self.color(r2, c2) == BLACK:
+                if (
+                    r2 < 0
+                    or r2 >= self.n
+                    or c2 < 0
+                    or c2 >= self.m
+                    or prev[r2][c2] != (-1, -1)
+                    or self.color(r2, c2) == BLACK
+                ):
                     continue
 
                 prev[r2][c2] = (r, c)
@@ -150,7 +159,10 @@ class Grid(QTableWidget):
                     # we will now trace the path back to the start.
                     # we will color the shortest path DARK_GREEN
                     r2, c2 = prev[r2][c2]  # don't want to color the ending cell
-                    while (r2, c2) != self.start:  # while we're not at the starting cell
+                    while (
+                        r2,
+                        c2,
+                    ) != self.start:  # while we're not at the starting cell
                         # set color to dark green
                         self.item(r2, c2).setBackground(QtGui.QColor(*DARK_GREEN))
                         # go to the previous cell in the shortest path
@@ -204,7 +216,7 @@ class MainWindow(QWidget):
         # self.delay.setTickInterval(50) the user more freedom to choose the delay
         self.delay.setValue(wait)  # default value
         self.delay.valueChanged.connect(self.delay_changed)
-        self.speed_indicator = QLabel(f'Delay: {wait}')
+        self.speed_indicator = QLabel(f"Delay: {wait}")
         self.multi_button = QPushButton("Run")
         self.multi_button.clicked.connect(self.multi_button_clicked)
 
@@ -243,24 +255,30 @@ class MainWindow(QWidget):
     def delay_changed(self):
         global wait  # don't want to create a local variable
         wait = self.delay.value()
-        self.speed_indicator.setText(f'Delay: {wait}')
+        self.speed_indicator.setText(f"Delay: {wait}")
 
     def reset_clicked(self):
-        if QMessageBox.question(self, "Confirmation", "Do you want to reset?") \
-                == QMessageBox.StandardButton.No:
+        if (
+            QMessageBox.question(self, "Confirmation", "Do you want to reset?")
+            == QMessageBox.StandardButton.No
+        ):
             return
         self.grid.resize_(self.n, self.m)
-        self.multi_button.setText('Run')
+        self.multi_button.setText("Run")
         self.state = 0
 
     def resize_clicked(self):
-        if QMessageBox.question(self, "Confirmation", "If you resize, the board will be reset.") \
-                == QMessageBox.StandardButton.No:
+        if (
+            QMessageBox.question(
+                self, "Confirmation", "If you resize, the board will be reset."
+            )
+            == QMessageBox.StandardButton.No
+        ):
             return
         self.n = self.rows.value()
         self.m = self.cols.value()
         self.grid.resize_(self.n, self.m)
-        self.multi_button.setText('Run')
+        self.multi_button.setText("Run")
         self.state = 0
 
     def cell_clicked(self, cell):
@@ -298,7 +316,7 @@ class MainWindow(QWidget):
                         self.grid.setItem(i, j, QTableWidgetItem())
                         self.grid.item(i, j).setBackground(QtGui.QColor(*WHITE))
                     # no matter what, the cell should not have any text in it
-                    self.grid.item(i, j).setText('')
+                    self.grid.item(i, j).setText("")
             self.multi_button.setText("Run")
             self.state = 0
         elif self.state == 0:
@@ -309,7 +327,9 @@ class MainWindow(QWidget):
             self.resize_button.setDisabled(True)
             self.reset_button.setDisabled(True)
             if self.grid.bfs():  # successfully found a path
-                QMessageBox.information(self, "Success", "Shortest path found (dark green).")
+                QMessageBox.information(
+                    self, "Success", "Shortest path found (dark green)."
+                )
             else:  # successfully failed lol
                 QMessageBox.information(self, "Fail", "No path found.")
             self.multi_button.setText("Clear")
@@ -324,7 +344,9 @@ class MainWindow(QWidget):
 
 app = QApplication([])  # needed, but I don't know why
 
-main_window = MainWindow("Breadth-first search on a grid visualization", 10, 10)  # default grid size is 10, 10
+main_window = MainWindow(
+    "Breadth-first search on a grid visualization", 10, 10
+)  # default grid size is 10, 10
 main_window.show()
 
 app.exec()  # run the program!
